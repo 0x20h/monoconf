@@ -44,10 +44,11 @@ class Monoconf
         )
     );
 
-    protected function __construct()
-    {
-    }
 
+    /**
+     * Retrieve an instance.
+     *
+     */
     public static function getInstance()
     {
         if (!self::$Instance) {
@@ -57,15 +58,29 @@ class Monoconf
         return self::$Instance;
     }
 
+
+    /**
+     * Set configuration for logging
+     *
+     * @param array $config configuration array.
+     */
     public static function config(array $config)
     {
         $Instance = self::getInstance();
         
         // reset loggers
         $Instance->loggers = array();
+        // reset config
         $Instance->config = $config;
     }
 
+
+    /**
+     * Retrieve a \Monolog\Logger instance for the given name.
+     *
+     * @param string $name an identifier for the logger.
+     * @return \Monolog\Logger configured Logger instance.
+     */
     public static function getLogger($name)
     {
         $Instance = self::getInstance();
@@ -77,7 +92,8 @@ class Monoconf
         return $Instance->loggers[$name];
     }
 
-    protected function initLogger($name)
+
+    private function initLogger($name)
     {
         $config = $this->config;
         $rules = $handlers = $processors = array();
