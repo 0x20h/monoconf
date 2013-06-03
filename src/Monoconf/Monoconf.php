@@ -79,10 +79,11 @@ class Monoconf
             }
         }
 
+        // @TODO: register processors
         return new \Monolog\Logger(
             $name,
             $handlers,
-            array(new \Monoconf\Processor\PidProcessor)
+            array()
         );
     }
 }
