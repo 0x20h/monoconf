@@ -1,0 +1,22 @@
+{
+	"name": "0x20h/monoconf",
+	"description": "log4j like logging configuration for the monolog framework",
+	"keywords": ["logging", "monolog"],
+	"type": "library",
+	"license": "MIT",
+	"authors": [{
+		"name": "0x20h",
+		"email": "kohj@informatik.uni-marburg.de"
+	}
+	],
+	"require": {
+		"php": ">=5.3.0",
+		"monolog/monolog": ">=1.5.0"
+	},
+	"require-dev": {
+		"phpunit/phpunit": "3.7.*"
+	},
+	"autoload": {
+		"psr-0": {"Monoconf": "src/"}
+	}
+}

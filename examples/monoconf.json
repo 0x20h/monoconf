@@ -1,0 +1,32 @@
+{
+	"rules": {
+		"*": {
+			"error": "error-handler"
+		},
+		"Namespace\*": {
+			"info": "stdout-handler",
+		}
+	},
+	"handler": {
+		"error-handler": {
+			"type": "Monolog\Handler\StreamHandler",
+			"args": [
+				'php://stderr',
+			],
+			"formatter": "line"
+		},
+		"stdout-handler": {
+			"type": "Monolog\Handler\StreamHandler",
+			"args": [
+				'php://stdout',
+			],
+			"formatter": "line"
+		}
+	},
+  "formatter": {
+			"type": "Monolog\Formatter\LineFormatter",
+			"args": [
+				"%datetime% %pid% %channel%@%level_name% %message% %context%\n"
+			]
+	}
+}
