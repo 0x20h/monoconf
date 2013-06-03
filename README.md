@@ -1,6 +1,6 @@
 # Monoconf
 
-log4j like configuration for the [https://github.com/Seldaek/monolog](monolog)
+log4j like configuration for the [monolog](https://github.com/Seldaek/monolog)
 logging framework.
 
 ## Usage
