@@ -1,6 +1,6 @@
 # Monoconf
 
-log4j like configuration for the (https://github.com/Seldaek/monolog)[monolog]
+log4j like configuration for the [https://github.com/Seldaek/monolog](monolog)
 logging framework.
 
 ## Usage
@@ -40,7 +40,7 @@ logging framework.
 	},
     "processor": {
         "pid": {
-            "type": "Monoconf\Processor\PidProcessor"
+            "type": "Monolog\Processor\ProcessIdProcessor"
         },
     }
 }
@@ -56,8 +56,6 @@ use Monoconf\Monoconf;
 
 $config = Monoconf::config(json_decode(file_get_contents('monoconf.json'), true));
 ```
-
-In your application code:
 
 ```
 namespace MyApp\Controller;
