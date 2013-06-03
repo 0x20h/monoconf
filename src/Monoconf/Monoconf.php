@@ -25,57 +25,112 @@ namespace Monoconf;
 
 class Monoconf
 {
-    private static $loggers = array();
-    private static $config = array();
+    private static $Instance;
+
+    private $loggers = array();
+    private $config = array(
+        'rules' => array(
+            '*' => array(
+                'handler' => array('null'),
+            ),
+        ),
+        'handler' => array(
+            'null' => array(
+                'type' => 'Monolog\\Handler\\NullHandler'
+            )
+        )
+    );
+
+    protected function __construct()
+    {
+    }
+
+    public static function getInstance()
+    {
+        if (!self::$Instance) {
+            self::$Instance = new Monoconf();
+        }
+
+        return self::$Instance;
+    }
 
     public static function config(array $config)
     {
-        self::$config = $config;
+        $Instance = self::getInstance();
+        
+        // reset loggers
+        $Instance->loggers = array();
+        $Instance->config = $config;
     }
 
     public static function getLogger($name)
     {
-        if (!isset(self::$loggers[$name])) {
-            self::$loggers[$name] = self::initLogger($name);
+        $Instance = self::getInstance();
+
+        if (!isset($Instance->loggers[$name])) {
+            $Instance->loggers[$name] = $Instance->initLogger($name);
         }
 
-        return self::$loggers[$name];
+        return $Instance->loggers[$name];
     }
 
-    protected static function initLogger($name)
+    protected function initLogger($name)
     {
-        $config = self::$config;
-        $rules = array();
+        $config = $this->config;
+        $rules = $handlers = $processors = array();
 
         foreach ($config['rules'] as $key => $ruleSetup) {
             $rulePattern = str_replace(array('*', '\\'), array('.*', '\\\\'), $key);
 
             if (preg_match('#^'.$rulePattern.'$#', $name)) {
-                $rules = array_merge($rules, $ruleSetup);
+                $rules = $ruleSetup;
+                break;
             }
         }
         
         foreach ($rules as $level => $localconf) {
-            foreach($localconf['handler'] as $handler) {
+            foreach ($localconf['handler'] as $handler) {
                 if (!isset($config['handler'][$handler])) {
                     // error
                     trigger_error('config key not set for handler '.$handler);
                     continue;
                 }
 
-                $type = $config['handler'][$handler]['type'];
-                $args = $config['handler'][$handler]['args'];
-                $args[] = constant('\Monolog\Logger::'.strtoupper($level));
-                $args[] = true;
+                if ($config['handler'][$handler] instanceof \Monolog\Handler\HandlerInterface) {
+                    $Handler = $config['handler'][$handler];
+                } else {
+                    $type = $config['handler'][$handler]['type'];
+                    $args = $config['handler'][$handler]['args'];
+                    $args[] = constant('\Monolog\Logger::'.strtoupper($level));
+                    $args[] = true;
+
+                    $Reflection = new \ReflectionClass($type);
+                    $Handler = $Reflection->newInstanceArgs($args);
+
+                    if (isset($config['handler'][$handler]['formatter'])) {
+                        $formatter = $config['formatter'][$config['handler'][$handler]['formatter']];
+                        $Formatter = new \ReflectionClass($formatter['type']);
+                        $Handler->setFormatter($Formatter->newInstanceArgs($formatter['args']));
+                    }
+                }
+               
+                $handlers[] = $Handler;
+            }
+
+            if (!isset($localconf['processor'])) {
+                continue;
+            }
+
+            foreach ($localconf['processor'] as $processor) {
+                if (!isset($config['processor'][$processor])) {
+                    continue;
+                }
+
+                $type = $config['processor'][$processor]['type'];
+                $args = $config['processor'][$processor]['args'];
 
                 $Reflection = new \ReflectionClass($type);
-                $handlers[] = $Handler = $Reflection->newInstanceArgs($args);
-
-                if (isset($config['handler'][$handler]['formatter'])) {
-                    $formatter = $config['formatter'][$config['handler'][$handler]['formatter']];
-                    $Formatter = new \ReflectionClass($formatter['type']);
-                    $Handler->setFormatter($Formatter->newInstanceArgs($formatter['args']));
-                }
+                $processors[] = $Reflection->newInstanceArgs($args);
             }
         }
 
@@ -83,7 +138,7 @@ class Monoconf
         return new \Monolog\Logger(
             $name,
             $handlers,
-            array()
+            $processors
         );
     }
 }

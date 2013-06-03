@@ -34,6 +34,46 @@ class MonoconfTest extends \PHPUnit_Framework_Testcase
 
     public function testConfig()
     {
+        $Handler = new \Monolog\Handler\TestHandler();
+
+        $config = array(
+            'rules' => array(
+                'MyApp\Console\*' => array(
+                    'info' => array(
+                        'handler' => array('stdout-handler'),
+                    ),
+                ),
+                '*' => array(
+                    'error' => array(
+                        'handler' => array('error-handler'),
+                    ),
+                ),
+            ),
+            'handler' => array(
+                'stdout-handler' => $Handler,
+                'error-handler' => array(
+                    'type' => 'Monolog\Handler\StreamHandler',
+                    'args' => array(
+                        'php://stderr',
+                    ),
+                ),
+            ),
+        );
+
+        Monoconf::config($config);
+        $Logger = Monoconf::getLogger('MyApp\Other\Class');
+        $this->assertEquals($Logger->getName(), 'MyApp\Other\Class');
+        $this->assertTrue($Logger->isHandling(\Monolog\Logger::ERROR));
+        $this->assertFalse($Logger->isHandling(\Monolog\Logger::WARNING));
+        $this->assertFalse($Logger->isHandling(\Monolog\Logger::INFO));
+        $this->assertFalse($Logger->isHandling(\Monolog\Logger::DEBUG));
+    }
+
+
+    public function testProcessorRecords()
+    {
+        $Handler = new \Monolog\Handler\TestHandler();
+
         $config = array(
             'rules' => array(
                 '*' => array(
@@ -42,58 +82,23 @@ class MonoconfTest extends \PHPUnit_Framework_Testcase
                         'processor' => array('uid'),
                     ),
                 ),
-                'MyApp\Console\*' => array(
-                    'info' => array(
-                        'handler' => array('stdout-handler'),
-                    ),
-                ),
             ),
             'handler' => array(
-                'stdout-handler' => array(
-                    'type' => 'Monolog\Handler\StreamHandler',
-                    'args' => array(
-                        'php://stdout',
-                    ),
-                    'formatter' => 'line',
-                ),
-                'error-handler' => array(
-                    'type' => 'Monolog\Handler\StreamHandler',
-                    'args' => array(
-                        'php://stderr',
-                    ),
-                    'formatter' => 'line',
-                ),
-            ),
-            'formatter' => array(
-                'line' => array(
-                    'type' => 'Monolog\Formatter\LineFormatter',
-                    'args' => array(
-                        '%datetime% %pid% %channel%@%level_name% %message% %context%'.PHP_EOL,
-                    ),
-                ),
+                'error-handler' => $Handler,
             ),
             'processor' => array(
                 'uid' => array(
                     'type' => 'Monolog\Processor\UidProcessor',
-                    'args' => array(/* length = */ 4),
-                ),
-            ),
+                    'args' => array(),
+                )
+            )
         );
 
         Monoconf::config($config);
-        $Logger = Monoconf::getLogger('MyApp\Console\Foo');
-        $this->assertEquals($Logger->getName(), 'MyApp\Console\Foo');
-        $this->assertTrue($Logger->isHandling(\Monolog\Logger::CRITICAL));
-        $this->assertTrue($Logger->isHandling(\Monolog\Logger::ERROR));
-        $this->assertTrue($Logger->isHandling(\Monolog\Logger::WARNING));
-        $this->assertTrue($Logger->isHandling(\Monolog\Logger::INFO));
-        $this->assertFalse($Logger->isHandling(\Monolog\Logger::DEBUG));
-        
         $Logger = Monoconf::getLogger('MyApp\Other\Class');
-        $this->assertEquals($Logger->getName(), 'MyApp\Other\Class');
-        $this->assertTrue($Logger->isHandling(\Monolog\Logger::ERROR));
-        $this->assertFalse($Logger->isHandling(\Monolog\Logger::WARNING));
-        $this->assertFalse($Logger->isHandling(\Monolog\Logger::INFO));
-        $this->assertFalse($Logger->isHandling(\Monolog\Logger::DEBUG));
+        $Logger->error('foo');
+        $this->assertTrue($Handler->hasErrorRecords('foo'));
+        $records = $Handler->getRecords();
+        $this->assertTrue(isset($records[0]['extra']['uid']));
     }
 }
