@@ -57,7 +57,7 @@ use Monoconf\Monoconf;
 $config = Monoconf::config(json_decode(file_get_contents('monoconf.json'), true));
 ```
 
-```
+``` php
 namespace MyApp\Controller;
 
 class SomeController {
