@@ -31,12 +31,15 @@ class Monoconf
     private $config = array(
         'rules' => array(
             '*' => array(
-                'handler' => array('null'),
+                'debug' => array(
+                    'handler' => array('null'),
+                ),
             ),
         ),
         'handler' => array(
             'null' => array(
-                'type' => 'Monolog\\Handler\\NullHandler'
+                'type' => 'Monolog\\Handler\\NullHandler',
+                'args' => array(),
             )
         )
     );
