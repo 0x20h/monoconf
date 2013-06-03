@@ -76,3 +76,9 @@ class SomeController {
     }
 }
 ```
+
+## Tests
+
+```
+phpunit --bootstrap tests/bootstrap.php tests/
+```
