@@ -10,8 +10,19 @@ logging framework.
 ```
 {
 	"rules": {
-		"Namespace\\*": {
-			"debug": ["debug-handler"]
+        "*": {
+            "error": {
+                "handler": ["error-handler"]
+            }
+        }
+		"MyApp\\Controller*": {
+			"debug": {
+                "handler": ["debug-handler"],
+                "processor": ["pid"]
+            },
+            "error": {
+                "handler": ["error-handler"]
+            }
 		},
 	},
 	"handler": {
@@ -40,7 +51,9 @@ logging framework.
 	},
     "processor": {
         "pid": {
-            "type": "Monolog\Processor\ProcessIdProcessor"
+            "type": "Monolog\Processor\ProcessIdProcessor",
+            "args": [
+            ]
         },
     }
 }
@@ -74,6 +87,11 @@ class SomeController {
     }
 }
 ```
+
+Using this setup every class in the `MyApp\Controller` namespace  will get a 
+logger that logs every message up to `debug` to `/my/app/error.log` and every
+other class will get a logger that logs messages up to `error` to 
+`/my/app/error.log`.
 
 ## Tests
 
