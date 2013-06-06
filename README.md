@@ -67,7 +67,8 @@ require 'vendor/autoload.php';
 
 use Monoconf\Monoconf;
 
-$config = Monoconf::config(json_decode(file_get_contents('monoconf.json'), true));
+// initialize monoconf
+Monoconf::config(json_decode(file_get_contents('monoconf.json'), true));
 ```
 
 ``` php
