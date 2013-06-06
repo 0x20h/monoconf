@@ -31,7 +31,7 @@ class Monoconf
     private $config = array(
         'rules' => array(
             '*' => array(
-                'debug' => array(
+                'error' => array(
                     'handler' => array('null'),
                 ),
             ),
@@ -153,7 +153,6 @@ class Monoconf
             }
         }
 
-        // @TODO: register processors
         return new \Monolog\Logger(
             $name,
             $handlers,
