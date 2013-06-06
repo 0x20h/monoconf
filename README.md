@@ -7,7 +7,7 @@ logging framework.
 
 1. Create a config JSON file:
 
-```
+``` json
 {
 	"rules": {
         "*": {
