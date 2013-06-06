@@ -48,6 +48,7 @@ class Monoconf
     /**
      * Retrieve an instance.
      *
+     * @return \Monoconf\Monoconf The singleton instance.
      */
     public static function getInstance()
     {
@@ -60,18 +61,40 @@ class Monoconf
 
 
     /**
-     * Set configuration for logging
+     * Validate a configuration array.
      *
-     * @param array $config configuration array.
+     * @param array $config The configuration.
+     * @return bool True, if valid. False otherwise.
      */
-    public static function config(array $config)
+    public static function validate(array $config)
     {
-        $Instance = self::getInstance();
+        return true; 
+    }
+    
+   
+    /**
+     * Set or get the current logging configuration.
+     *
+     * If called with no parameter or an emt
+     * @param array $config configuration array.
+     * @throws InvalidArgumentException If the configuration array format is invalid.
+     */
+    public static function config(array $config = null)
+    {
+        $Monoconf = self::getInstance();
+        
+        if (!$config) {
+            return $Monoconf->config;
+        }
+
+        if (!self::validate($config)) {
+            throw new InvalidArgumentException('Invalid configuration format.');
+        }
         
         // reset loggers
-        $Instance->loggers = array();
+        $Monoconf->loggers = array();
         // reset config
-        $Instance->config = $config;
+        $Monoconf->config = $config;
     }
 
 
@@ -107,8 +130,8 @@ class Monoconf
             }
         }
         
-        foreach ($rules as $level => $localconf) {
-            foreach ($localconf['handler'] as $handler) {
+        foreach ($rules as $level => $loggerConfig) {
+            foreach ($loggerConfig['handler'] as $handler) {
                 if (!isset($config['handler'][$handler])) {
                     // error
                     trigger_error('config key not set for handler '.$handler);
@@ -136,11 +159,11 @@ class Monoconf
                 $handlers[] = $Handler;
             }
 
-            if (!isset($localconf['processor'])) {
+            if (!isset($loggerConfig['processor'])) {
                 continue;
             }
 
-            foreach ($localconf['processor'] as $processor) {
+            foreach ($loggerConfig['processor'] as $processor) {
                 if (!isset($config['processor'][$processor])) {
                     continue;
                 }

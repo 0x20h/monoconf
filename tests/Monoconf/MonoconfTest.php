@@ -31,8 +31,19 @@ class MonoconfTest extends \PHPUnit_Framework_Testcase
     public function setUp()
     {
     }
+    
+    /**
+     * Test that only one instance is available
+     */
+    public function testGetInstance()
+    {
+        $this->assertTrue(Monoconf::getInstance() === Monoconf::getInstance());
+    }
 
-    public function testConfig()
+    /**
+     * Test that getLogger returns correctly configured loggers.
+     */
+    public function testGetLogger()
     {
         $Handler = new \Monolog\Handler\TestHandler();
 
