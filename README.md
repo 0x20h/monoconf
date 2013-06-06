@@ -14,7 +14,7 @@ logging framework.
             "error": {
                 "handler": ["error-handler"]
             }
-        }
+        },
 		"MyApp\\Controller*": {
 			"debug": {
                 "handler": ["debug-handler"],
@@ -23,27 +23,27 @@ logging framework.
             "error": {
                 "handler": ["error-handler"]
             }
-		},
+		}
 	},
 	"handler": {
 		"error-handler": {
-			"type": "Monolog\Handler\StreamHandler",
+			"type": "Monolog\\Handler\\StreamHandler",
 			"args": [
 				"/my/app/error.log"
 			],
 			"formatter": "line"
 		},
 		"debug-handler": {
-			"type": "Monolog\Handler\StreamHandler",
+			"type": "Monolog\\Handler\\StreamHandler",
 			"args": [
 				"/my/app/application.log"
 			],
-			"formatter": "line",
+			"formatter": "line"
 		}
 	},
     "formatter": {
         "line": {
-			"type": "Monolog\Formatter\LineFormatter",
+			"type": "Monolog\\Formatter\\LineFormatter",
 			"args": [
 				"%datetime% %pid% %channel%@%level_name% %message% %context%\n"
 			]
@@ -51,10 +51,10 @@ logging framework.
 	},
     "processor": {
         "pid": {
-            "type": "Monolog\Processor\ProcessIdProcessor",
+            "type": "Monolog\\Processor\\ProcessIdProcessor",
             "args": [
             ]
-        },
+        }
     }
 }
 ```
