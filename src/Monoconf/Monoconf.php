@@ -23,163 +23,41 @@
 
 namespace Monoconf;
 
-class Monoconf
+class Monoconf extends \Pimple
 {
-    private static $Instance;
-
-    private $loggers = array();
-    private $config = array(
-        'rules' => array(
-            '*' => array(
-                'error' => array(
-                    'handler' => array('null'),
-                ),
-            ),
-        ),
-        'handler' => array(
-            'null' => array(
-                'type' => 'Monolog\\Handler\\NullHandler',
-                'args' => array(),
-            )
-        )
-    );
 
 
-    /**
-     * Retrieve an instance.
-     *
-     * @return \Monoconf\Monoconf The singleton instance.
-     */
-    public static function getInstance()
+    public function offsetGet($id)
     {
-        if (!self::$Instance) {
-            self::$Instance = new Monoconf();
+        $match = $this->match($id);
+        
+        if ($match) {
+            $isFactory = is_object($this->values['appenders'][$match]) && method_exists($this->values['appenders'][$match], '__invoke');
+            return $isFactory ? $this->values['appenders'][$match]($this, $id) : $this->values['appenders'][$match];
         }
 
-        return self::$Instance;
+        return parent::offsetGet($id);
     }
-
-
-    /**
-     * Validate a configuration array.
-     *
-     * @param array $config The configuration.
-     * @return bool True, if valid. False otherwise.
-     */
-    public static function validate(array $config)
-    {
-        return true; 
-    }
-    
+      
    
-    /**
-     * Set or get the current logging configuration.
-     *
-     * If called with no parameter or an emt
-     * @param array $config configuration array.
-     * @throws InvalidArgumentException If the configuration array format is invalid.
-     */
-    public static function config(array $config = null)
-    {
-        $Monoconf = self::getInstance();
-        
-        if (!$config) {
-            return $Monoconf->config;
-        }
-
-        if (!self::validate($config)) {
-            throw new InvalidArgumentException('Invalid configuration format.');
-        }
-        
-        // reset loggers
-        $Monoconf->loggers = array();
-        // reset config
-        $Monoconf->config = $config;
+    public function offsetExists($key) {
+        return parent::offsetExists($this->match($key));
     }
 
-
     /**
-     * Retrieve a \Monolog\Logger instance for the given name.
+     * Match a requested key with the registered service patterns.
      *
-     * @param string $name an identifier for the logger.
-     * @return \Monolog\Logger configured Logger instance.
-     */
-    public static function getLogger($name)
+     * @param string $key
+     * @return 
+     */ 
+    private function match($key)
     {
-        $Instance = self::getInstance();
-
-        if (!isset($Instance->loggers[$name])) {
-            $Instance->loggers[$name] = $Instance->initLogger($name);
-        }
-
-        return $Instance->loggers[$name];
-    }
-
-
-    private function initLogger($name)
-    {
-        $config = $this->config;
-        $rules = $handlers = $processors = array();
-
-        foreach ($config['rules'] as $key => $ruleSetup) {
-            $rulePattern = str_replace(array('*', '\\'), array('.*', '\\\\'), $key);
-
-            if (preg_match('#^'.$rulePattern.'$#', $name)) {
-                $rules = $ruleSetup;
-                break;
-            }
-        }
-        
-        foreach ($rules as $level => $loggerConfig) {
-            foreach ($loggerConfig['handler'] as $handler) {
-                if (!isset($config['handler'][$handler])) {
-                    // error
-                    trigger_error('config key not set for handler '.$handler);
-                    continue;
-                }
-
-                if ($config['handler'][$handler] instanceof \Monolog\Handler\HandlerInterface) {
-                    $Handler = $config['handler'][$handler];
-                } else {
-                    $type = $config['handler'][$handler]['type'];
-                    $args = $config['handler'][$handler]['args'];
-                    $args[] = constant('\Monolog\Logger::'.strtoupper($level));
-                    $args[] = true;
-
-                    $Reflection = new \ReflectionClass($type);
-                    $Handler = $Reflection->newInstanceArgs($args);
-
-                    if (isset($config['handler'][$handler]['formatter'])) {
-                        $formatter = $config['formatter'][$config['handler'][$handler]['formatter']];
-                        $Formatter = new \ReflectionClass($formatter['type']);
-                        $Handler->setFormatter($Formatter->newInstanceArgs($formatter['args']));
-                    }
-                }
-               
-                $handlers[] = $Handler;
-            }
-
-            if (!isset($loggerConfig['processor'])) {
-                continue;
-            }
-
-            foreach ($loggerConfig['processor'] as $processor) {
-                if (!isset($config['processor'][$processor])) {
-                    continue;
-                }
-
-                $type = $config['processor'][$processor]['type'];
-                $args = $config['processor'][$processor]['args'];
-
-                $Reflection = new \ReflectionClass($type);
-                $processors[] = $Reflection->newInstanceArgs($args);
+        foreach (array_keys($this->values['appenders']) as $pattern) {
+            if (preg_match('#^'.$pattern.'$#', $key)) {
+                return $pattern;
             }
         }
 
-        return new \Monolog\Logger(
-            $name,
-            $handlers,
-            $processors
-        );
+        return null;
     }
 }
