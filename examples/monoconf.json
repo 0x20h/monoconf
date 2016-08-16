@@ -3,28 +3,28 @@
 		"*": {
 			"error": "error-handler"
 		},
-		"Namespace\*": {
-			"info": "stdout-handler",
+		"Namespace\\*": {
+			"info": "stdout-handler"
 		}
 	},
 	"handler": {
 		"error-handler": {
-			"type": "Monolog\Handler\StreamHandler",
+			"type": "Monolog\\Handler\\StreamHandler",
 			"args": [
-				'php://stderr',
+				"php://stderr"
 			],
 			"formatter": "line"
 		},
 		"stdout-handler": {
-			"type": "Monolog\Handler\StreamHandler",
+			"type": "Monolog\\Handler\\StreamHandler",
 			"args": [
-				'php://stdout',
+				"php://stdout"
 			],
 			"formatter": "line"
 		}
 	},
   "formatter": {
-			"type": "Monolog\Formatter\LineFormatter",
+			"type": "Monolog\\Formatter\\LineFormatter",
 			"args": [
 				"%datetime% %pid% %channel%@%level_name% %message% %context%\n"
 			]

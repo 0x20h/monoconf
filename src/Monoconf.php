@@ -27,26 +27,30 @@ class Monoconf
 {
     private static $Instance;
 
-    private $loggers = array();
-    private $config = array(
-        'rules' => array(
-            '*' => array(
-                'error' => array(
-                    'handler' => array('null'),
-                ),
-            ),
-        ),
-        'handler' => array(
-            'null' => array(
+    /**
+     * @var \Monolog\Logger[]
+     */
+    private $loggers = [];
+
+    private $config = [
+        'rules' => [
+            '*' => [
+                'error' => [
+                    'handler' => ['null'],
+                ],
+            ],
+        ],
+        'handler' => [
+            'null' => [
                 'type' => 'Monolog\\Handler\\NullHandler',
-                'args' => array(),
-            )
-        )
-    );
+                'args' => [],
+            ]
+        ]
+    ];
 
 
     /**
-     * Retrieve an instance.
+     * Retrieve a singleton instance.
      *
      * @return \Monoconf\Monoconf The singleton instance.
      */
@@ -66,7 +70,7 @@ class Monoconf
      * @param array $config The configuration.
      * @return bool True, if valid. False otherwise.
      */
-    public static function validate(array $config)
+    public function validate(array $config)
     {
         return true; 
     }
@@ -75,26 +79,25 @@ class Monoconf
     /**
      * Set or get the current logging configuration.
      *
-     * If called with no parameter or an emt
+     * If called with no parameter or an emtpy array, the current config is returned.
+     * 
      * @param array $config configuration array.
-     * @throws InvalidArgumentException If the configuration array format is invalid.
+     * @throws \InvalidArgumentException If the configuration array format is invalid.
      */
-    public static function config(array $config = null)
+    public function config(array $config = null)
     {
-        $Monoconf = self::getInstance();
-        
         if (!$config) {
-            return $Monoconf->config;
+            return $this->config;
         }
 
-        if (!self::validate($config)) {
-            throw new InvalidArgumentException('Invalid configuration format.');
+        if (!$this->validate($config)) {
+            throw new \InvalidArgumentException('Invalid configuration format.');
         }
         
         // reset loggers
-        $Monoconf->loggers = array();
+        $this->loggers = [];
         // reset config
-        $Monoconf->config = $config;
+        $this->config = $config;
     }
 
 
@@ -104,25 +107,23 @@ class Monoconf
      * @param string $name an identifier for the logger.
      * @return \Monolog\Logger configured Logger instance.
      */
-    public static function getLogger($name)
+    public function getLogger($name)
     {
-        $Instance = self::getInstance();
-
-        if (!isset($Instance->loggers[$name])) {
-            $Instance->loggers[$name] = $Instance->initLogger($name);
+        if (!isset($this->loggers[$name])) {
+            $this->loggers[$name] = $this->initLogger($name);
         }
 
-        return $Instance->loggers[$name];
+        return $this->loggers[$name];
     }
 
 
     private function initLogger($name)
     {
         $config = $this->config;
-        $rules = $handlers = $processors = array();
+        $rules = $handlers = $processors = [];
 
         foreach ($config['rules'] as $key => $ruleSetup) {
-            $rulePattern = str_replace(array('*', '\\'), array('.*', '\\\\'), $key);
+            $rulePattern = str_replace(['*', '\\'], ['.*', '\\\\'], $key);
 
             if (preg_match('#^'.$rulePattern.'$#', $name)) {
                 $rules = $ruleSetup;

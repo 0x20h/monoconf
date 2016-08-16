@@ -1,3 +1,4 @@
-vendor
-composer.lock
-tags
+/vendor
+/composer.lock
+/tags
+/.idea
